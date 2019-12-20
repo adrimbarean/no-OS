@@ -1,7 +1,7 @@
 /*******************************************************************************
- *   @file   xilinx/spi_extra.h
- *   @brief  Header containing extra types used in the spi driver.
- *   @author scuciurean (sergiu.cuciurean@analog.com)
+ *   @file   spi_engine.h
+ *   @brief  Header file of SPI Engine core features.
+ *   @author Sergiu Cuciurean (sergiu.cuciurean@analog.com)
 ********************************************************************************
  * Copyright 2019(c) Analog Devices, Inc.
  *
@@ -36,43 +36,92 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
-#ifndef SPI_EXTRA_H_
-#define SPI_EXTRA_H_
+
+#ifndef SPI_ENGINE_H
+#define SPI_ENGINE_H
 
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
 
 #include <stdint.h>
+#include "spi_extra.h"
+#include "spi_engine_private.h"
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
 /******************************************************************************/
 
-#define SPI_CS_DECODE		0x01
-#define SPI_DEASSERT_CURRENT_SS	0x0F
+#define ARRAY_SIZE(arr)			(sizeof(arr) / sizeof((arr)[0]))
+
+#define OFFLOAD_DISABLED		0x00
+#define OFFLOAD_TX_EN			BIT(0)
+#define OFFLOAD_RX_EN			BIT(1)
+#define OFFLOAD_TX_RX_EN		OFFLOAD_TX_EN | OFFLOAD_RX_EN
+
+#define SPI_ENGINE_MSG_QUEUE_END	0xFFFFFFFF
+
+#define	WRITE(no_bytes)			((SPI_ENGINE_INST_TRANSFER << 12) |\
+	(SPI_ENGINE_INSTRUCTION_TRANSFER_W << 8) | no_bytes)
+
+#define	READ(no_bytes)			((SPI_ENGINE_INST_TRANSFER << 12) |\
+	(SPI_ENGINE_INSTRUCTION_TRANSFER_R << 8) | no_bytes)
+
+#define	READ_WRITE(no_bytes)		((SPI_ENGINE_INST_TRANSFER << 12) |\
+	(SPI_ENGINE_INSTRUCTION_TRANSFER_RW << 8) | no_bytes)
+
+#define SLEEP(time)			SPI_ENGINE_CMD_SLEEP(time & 0xF)
+
+/* The delay and chip select parmeters are passed over the engine descriptor
+and will be used inside the function call */
+#define CS_HIGH				SPI_ENGINE_CMD_ASSERT(0x03, 0xFF)
+#define CS_LOW				SPI_ENGINE_CMD_ASSERT(0x03, 0x00)
 
 /******************************************************************************/
 /*************************** Types Declarations *******************************/
 /******************************************************************************/
 
-enum xil_spi_type {
-	SPI_PL,
-	SPI_PS,
-	SPI_ENGINE
-} xil_spi_type;
-
-typedef struct xil_spi_init_param {
+typedef struct spi_engine_init_param {
 	enum xil_spi_type	type;
-	uint32_t		flags;
-	uint32_t		device_id;
-} xil_spi_init_param;
+	uint32_t 		spi_engine_baseaddr;
+	uint32_t		cs_delay;
+} spi_engine_init_param;
 
-typedef struct xil_spi_desc {
-	enum xil_spi_type	type;
-	uint32_t		flags;
-	void			*config;
-	void			*instance;
-} xil_spi_desc;
+typedef struct spi_engine_offload_init_param {
+	uint32_t	rx_dma_baseaddr;
+	uint32_t	tx_dma_baseaddr;
+	uint8_t		offload_config;
+} spi_engine_offload_init_param;
 
-#endif // SPI_EXTRA_H_
+typedef struct spi_engine_offload_message {
+	uint32_t *commands;
+	uint32_t no_commands;
+	uint32_t tx_addr;
+	uint32_t rx_addr;
+} spi_engine_offload_message;
+
+/******************************************************************************/
+/************************ Functions Declarations ******************************/
+/******************************************************************************/
+
+int32_t spi_engine_init(struct spi_desc **desc,
+			const struct spi_init_param *param);
+
+int32_t spi_engine_write_and_read(spi_desc *desc,
+				  uint8_t *data,
+				  uint8_t bytes_number);
+
+int32_t spi_engine_remove(spi_desc *desc);
+
+/* Sets the length of one WORD used in the spi transfer.*/
+void 	spi_engine_set_transfer_length(spi_desc *desc,
+				       uint8_t data_length);
+
+int32_t spi_engine_offload_init(struct spi_desc *desc,
+			     const struct spi_engine_offload_init_param *param);
+
+int32_t spi_engine_offload_transfer(struct spi_desc *desc,
+				    struct spi_engine_offload_message msg,
+				    uint32_t no_samples);
+
+#endif // SPI_ENGINE_H
