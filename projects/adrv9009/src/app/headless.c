@@ -221,7 +221,7 @@ int main(void)
 
 #ifdef DAC_DMA_EXAMPLE
 	gpio_init_plddrbypass.extra = &ad9528_gpio_param;
-	gpio_init_plddrbypass.number = DAC_FIFO_BYPASS;
+	gpio_init_plddrbypass.number = DAC_FIFO_BYPASS_GPIO;
 	gpio_get(&gpio_plddrbypass, gpio_init_plddrbypass);
 	gpio_direction_output(gpio_plddrbypass, 1);
 	axi_dac_load_custom_data(tx_dac, sine_lut_iq,
