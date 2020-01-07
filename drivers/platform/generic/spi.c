@@ -49,7 +49,6 @@
 
 /**
  * @brief Initialize the SPI communication peripheral.
- * @param desc - The SPI descriptor.
  * @param param - The structure that contains the SPI parameters.
  * @return SUCCESS in case of success, FAILURE otherwise.
  */

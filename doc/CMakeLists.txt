@@ -16,6 +16,8 @@ set(DOCUMENTED_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/projects_page.dox \\
     ${CMAKE_CURRENT_SOURCE_DIR}/drivers_page.dox \\
     ${CMAKE_CURRENT_SOURCE_DIR}/mainpage.dox \\
+    ${SOURCES_DIR}/include \\
+    ${SOURCES_DIR}/drivers/platform \\
  ")
 
 configure_file(
