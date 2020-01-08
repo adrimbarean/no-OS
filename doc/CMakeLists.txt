@@ -6,6 +6,7 @@ if (NOT DOXYGEN_PATH)
     message(FATAL_ERROR "Doxygen not found!")
 endif()
 
+set(TRAVIS_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(DOXY_WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen_doc)
 
